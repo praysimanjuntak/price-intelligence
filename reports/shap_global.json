@@ -1,0 +1,102 @@
+[
+  {
+    "feature": "log_last_price",
+    "mean_abs_shap": 0.03727326172712456
+  },
+  {
+    "feature": "log_median_price",
+    "mean_abs_shap": 0.03384923165290991
+  },
+  {
+    "feature": "last_price",
+    "mean_abs_shap": 0.03260951457534478
+  },
+  {
+    "feature": "median_price",
+    "mean_abs_shap": 0.019978775471318728
+  },
+  {
+    "feature": "shopId",
+    "mean_abs_shap": 0.004423035636937394
+  },
+  {
+    "feature": "shop_n_obs",
+    "mean_abs_shap": 0.003304737080883442
+  },
+  {
+    "feature": "modelId__mean_price",
+    "mean_abs_shap": 0.0030638540639576343
+  },
+  {
+    "feature": "item_n_obs",
+    "mean_abs_shap": 0.0029069069611446954
+  },
+  {
+    "feature": "model_n_obs",
+    "mean_abs_shap": 0.00283026153748585
+  },
+  {
+    "feature": "cat_id",
+    "mean_abs_shap": 0.0026209277435284973
+  },
+  {
+    "feature": "itemId__median_price",
+    "mean_abs_shap": 0.0021028965009682148
+  },
+  {
+    "feature": "t_hour",
+    "mean_abs_shap": 0.002101052034163274
+  },
+  {
+    "feature": "shopId__median_price",
+    "mean_abs_shap": 0.0019751598850366453
+  },
+  {
+    "feature": "t_dom",
+    "mean_abs_shap": 0.001886199602663775
+  },
+  {
+    "feature": "t_dow",
+    "mean_abs_shap": 0.0017435956464678095
+  },
+  {
+    "feature": "modelId__min_price",
+    "mean_abs_shap": 0.0009821357847648042
+  },
+  {
+    "feature": "t_month",
+    "mean_abs_shap": 0.0009567948334911179
+  },
+  {
+    "feature": "modelId__max_price",
+    "mean_abs_shap": 0.0009170827079177314
+  },
+  {
+    "feature": "price_range_ratio",
+    "mean_abs_shap": 0.0008172989345286989
+  },
+  {
+    "feature": "is_cold_model",
+    "mean_abs_shap": 0.0006629160474778442
+  },
+  {
+    "feature": "modelId__std_price",
+    "mean_abs_shap": 0.00039737536184145095
+  },
+  {
+    "feature": "price_cv",
+    "mean_abs_shap": 0.00029174261923781375
+  },
+  {
+    "feature": "brand",
+    "mean_abs_shap": 0.00021356832188751772
+  },
+  {
+    "feature": "t_is_weekend",
+    "mean_abs_shap": 0.00017084848349558791
+  },
+  {
+    "feature": "days_since_last",
+    "mean_abs_shap": 0.0
+  }
+]

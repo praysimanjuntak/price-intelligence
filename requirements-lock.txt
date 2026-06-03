@@ -1,0 +1,14 @@
+# Exact versions verified for reproduction.
+# Use this for byte-for-byte reproduction; requirements.txt has looser ranges.
+numpy==2.4.6
+pandas==3.0.3
+pyarrow==24.0.0
+scikit-learn==1.8.0
+catboost==1.2.10
+lightgbm==4.6.0
+shap==0.52.0
+matplotlib==3.10.9
+gdown==6.0.0
+tqdm==4.67.3
+tabulate==0.10.0
+joblib==1.5.3
