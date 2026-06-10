@@ -4,10 +4,11 @@
 PY ?= uv run python
 
 # Live inference overrides:
-#   make infer TEST=data/test_full.csv OUT=data/test_completed.csv STRATEGY=category
+#   make infer TEST=data/test_full.csv OUT=data/test_completed.csv STRATEGY=category TIER=tier1
 TEST ?= data/test_3days.csv
 OUT ?= data/test_completed.csv
 STRATEGY ?= category
+TIER ?= tier2
 VAL ?= data/val.csv
 TRUTH ?= data/val_truth.csv
 
@@ -24,7 +25,7 @@ help:
 	@echo "  tier1     - Tier 1 global CatBoost (CPU default; --gpu for GPU)"
 	@echo "  calib     - anchor calibration study + synthetic-shift stress test"
 	@echo "  tier2     - Tier 2 hierarchical entity model backtest"
-	@echo "  infer     - fill blank prices -> $(OUT)"
+	@echo "  infer     - fill blank prices -> $(OUT) (TIER=tier1|tier2, STRATEGY=none|global|category)"
 	@echo "  score     - compare VAL=$(VAL) against TRUTH=$(TRUTH)"
 	@echo "  results   - aggregate all results + plots + README tables"
 	@echo "  all       - download prepare eda backtest tier1 calib tier2 results infer"
@@ -59,7 +60,7 @@ tier2:
 	$(PY) -m src.model_entity
 
 infer:
-	$(PY) -m src.infer --test $(TEST) --out $(OUT) --strategy $(STRATEGY)
+	$(PY) -m src.infer --test $(TEST) --out $(OUT) --strategy $(STRATEGY) --tier $(TIER)
 
 score:
 	$(PY) -m src.score --pred $(VAL) --truth $(TRUTH)

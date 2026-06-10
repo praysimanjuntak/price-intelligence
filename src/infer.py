@@ -29,6 +29,7 @@ Output guarantees
 Usage:
     python -m src.infer                          # 3-day file -> data/test_completed.csv
     python -m src.infer --test path/to/test.csv --out path/to/out.csv --strategy category
+    python -m src.infer --tier tier1             # global CatBoost base instead of LOCF
 """
 from __future__ import annotations
 
@@ -43,12 +44,43 @@ from src.features import EntityStats
 from src.calibration import estimate_factors, apply_calibration, locf_base
 
 CALIB_STRATEGY = "category"
+DEFAULT_TIER = "tier2"
+
+
+def tier1_base_predictor(train: pd.DataFrame):
+    """Tier 1 base: global CatBoost residual model over the LOCF baseline.
+
+    Loads models/global_catboost.cbm if present (produced by `make tier1`);
+    otherwise trains it on `train` and saves it for next time.
+    """
+    from catboost import CatBoostRegressor
+    from src.features import CATEGORICAL_FEATURES
+    from src.model_global import predict_global, train_global
+
+    path = C.MODELS_DIR / "global_catboost.cbm"
+    if path.exists():
+        model = CatBoostRegressor()
+        model.load_model(str(path))
+        cols = list(model.feature_names_)
+        art = {"model": model, "cols": cols,
+               "cat_idx": [i for i, c in enumerate(cols) if c in CATEGORICAL_FEATURES]}
+        print(f"[infer] tier1: loaded {path.name}")
+    else:
+        print(f"[infer] tier1: {path.name} not found — training global CatBoost "
+              "(slow; run `make tier1` to cache it)")
+        art = train_global(train)
+        art["model"].save_model(str(path))
+
+    def _base(es: EntityStats, frame: pd.DataFrame) -> np.ndarray:
+        return predict_global(art, None, frame, None, es)
+    return _base
 
 
 def fill_prices(
     train: pd.DataFrame,
     test: pd.DataFrame,
     strategy: str = CALIB_STRATEGY,
+    tier: str = DEFAULT_TIER,
 ) -> pd.DataFrame:
     """Fill blank prices in `test`.
 
@@ -56,9 +88,12 @@ def fill_prices(
     test data (anchor rows or predictions) ever enters the history.
 
     Per day: use that day's 100 anchors to estimate calibration factors, then
-    calibrate the base LOCF predictions for the blank rows.
+    calibrate the base predictions for the blank rows. The base predictor is
+    selected by `tier`: "tier2" (default) is the hierarchical LOCF model;
+    "tier1" is the global CatBoost model.
     """
     es = EntityStats().fit(train)
+    base_predictor = tier1_base_predictor(train) if tier == "tier1" else locf_base
     out = test.copy()
     out["_day"] = out[C.TIME_COL].dt.date
 
@@ -69,9 +104,9 @@ def fill_prices(
         blanks = sub[sub[C.TARGET].isna()]
         if blanks.empty:
             continue
-        base = locf_base(es, blanks)
+        base = base_predictor(es, blanks)
         if len(anchors) > 0:
-            fac = estimate_factors(anchors, es, strategy, base_predictor=locf_base)
+            fac = estimate_factors(anchors, es, strategy, base_predictor=base_predictor)
             pred = apply_calibration(base, blanks, es, strategy, fac)
             gfac = float(np.exp(fac["global"]) - 1)
         else:
@@ -98,14 +133,19 @@ def main():
     ap.add_argument("--strategy", default=CALIB_STRATEGY,
                     choices=["none", "global", "category"],
                     help="Anchor calibration strategy")
+    ap.add_argument("--tier", default=DEFAULT_TIER,
+                    choices=["tier1", "tier2"],
+                    help="Base model: tier1 = global CatBoost, "
+                         "tier2 = hierarchical LOCF (default)")
     args = ap.parse_args()
 
     train = data_io.load_train()
     raw = pd.read_csv(args.test, low_memory=False)
     test = data_io._coerce(raw)
 
-    print(f"[infer] train={train.shape}  test={test.shape}  strategy={args.strategy}")
-    completed = fill_prices(train, test, args.strategy)
+    print(f"[infer] train={train.shape}  test={test.shape}  "
+          f"strategy={args.strategy}  tier={args.tier}")
+    completed = fill_prices(train, test, args.strategy, tier=args.tier)
 
     # Preserve original column order; write price as integer IDR.
     completed = completed[[c for c in raw.columns if c in completed.columns]]
